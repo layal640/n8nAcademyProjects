@@ -1,0 +1,414 @@
+{
+  "name": "Section 1 - Feedback Pipeline",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6e843cb3-68ff-4740-a8af-a6ccba6acea7",
+      "name": "TriggerManual"
+    },
+    {
+      "parameters": {
+        "url": "XXXXX",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Assessment-ID",
+              "value": "XXXXXX"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "16ccc0f2-6b2f-42a8-b89f-b5f12ba36865",
+      "name": "GetFeedback",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "XXXXXX",
+          "name": "n8n Academy API Key"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "30e78d06-9479-4185-9cdf-2fa91011af1a",
+      "name": "SetFeedbackItem"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=  Customer: {{ $json.customer_name }}\nFeedback: {{ $json.message }}\n\nClassification:\n- Sentiment: {{ $json.sentiment }}\n- Topic: {{ $json.topic }}\n- Urgency: {{ $json.urgency }}\n- Key Issue: {{ $json.key_issue }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=  You are a helpful customer service assistant.\n\nRead the following customer feedback and write a brief, professional response acknowledging their message.\n\nUse the classification to guide your tone:\n- For negative sentiment or high urgency: Be empathetic and apologetic\n- For positive sentiment: Be appreciative and warm\n- For billing or support topics: Offer specific next steps\n\nWrite a 2-3 sentence response."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1216,
+        0
+      ],
+      "id": "a0396876-4149-46eb-a4b4-856f3c0b12fd",
+      "name": "GenerateReply"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        192
+      ],
+      "id": "414b067b-1b0a-4850-9d5d-2a040d786635",
+      "name": "gpt-oss-120b",
+      "credentials": {
+        "groqApi": {
+          "id": "XXXXXX",
+          "name": "Groq API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "XXXXXXX",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Assessment-ID",
+              "value": "XXXXXX"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "feedback_id",
+              "value": "={{ $('SetClassificationResult').item.json.feedback_id }}"
+            },
+            {
+              "name": "generated_reply",
+              "value": "={{ $json.text }}"
+            },
+            {
+              "name": "model_used",
+              "value": "=openai/gpt-oss-20b,openai/gpt-oss-120b"
+            },
+            {
+              "name": "sentiment",
+              "value": "={{ $('SetClassificationResult').item.json.sentiment }}"
+            },
+            {
+              "name": "topic",
+              "value": "={{ $('SetClassificationResult').item.json.topic }}"
+            },
+            {
+              "name": "urgency",
+              "value": "={{ $('SetClassificationResult').item.json.urgency }}"
+            },
+            {
+              "name": "key_issue",
+              "value": "={{ $('SetClassificationResult').item.json.key_issue }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1536,
+        0
+      ],
+      "id": "d7fcec19-20a2-4981-ba75-b8898b08cc08",
+      "name": "SendGeneratedReply",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "XXXXXX",
+          "name": "n8n Academy API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=  Customer: {{ $json.customer_name }}\n  Feedback: {{ $json.message }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=  You are a customer feedback analyst.\n\n  Analyze the feedback and classify it by:\n  1. Sentiment: Is the customer positive, neutral, or negative?\n  2. Topic: Is this about billing, product, support, or general?\n  3. Urgency: Based on the tone and content, is this low, medium, or high urgency?\n  4. Key Issue: Summarize the main point in one sentence\n\n  Output Requirements\n  sentiment: Must be exactly one of: positive, neutral, or negative\n  topic: Must be exactly one of: billing, product, support, or general\n  urgency: Must be exactly one of: low, medium, or high\n  key_issue: A one-sentence summary of the main issue or praise\n\n  Example output format:\n  {\n    \"sentiment\": \"positive\",\n    \"topic\": \"product\",\n    \"urgency\": \"low\",\n    \"key_issue\": \"Customer is satisfied with the product\"\n  }"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        672,
+        0
+      ],
+      "id": "4b73ed13-1a0a-43d3-8e02-db2c9bef8c69",
+      "name": "ClassifyFeedback",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        672,
+        192
+      ],
+      "id": "e7624d41-9a1e-4c5c-9600-018b0da7d84d",
+      "name": "gpt-oss-20b",
+      "credentials": {
+        "groqApi": {
+          "id": "XXXXXX",
+          "name": "Groq API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "  {\n    \"sentiment\": \"positive\",\n    \"topic\": \"product\",\n    \"urgency\": \"low\",\n    \"key_issue\": \"Customer is satisfied with the product\"\n  }"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        816,
+        192
+      ],
+      "id": "32e20f32-b685-46fc-96ec-af807b83929d",
+      "name": "OutputParser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4abceee5-8b42-4c4a-a2d5-1c46d2b7c760",
+              "name": "feedback_id",
+              "value": "={{ $('SetFeedbackItem').item.json.feedback_id }}",
+              "type": "string"
+            },
+            {
+              "id": "294be344-bbb0-41b4-9c5c-b174f039af2c",
+              "name": "customer_name",
+              "value": "={{ $('SetFeedbackItem').item.json.customer_name }}",
+              "type": "string"
+            },
+            {
+              "id": "be4373fb-2695-4a55-a659-4bacc96c79bf",
+              "name": "message",
+              "value": "={{ $('SetFeedbackItem').item.json.message }}",
+              "type": "string"
+            },
+            {
+              "id": "0584f19c-8182-4799-a7bc-81fef4bd12d5",
+              "name": "sentiment",
+              "value": "={{ $('ClassifyFeedback').item.json.output.sentiment }}",
+              "type": "string"
+            },
+            {
+              "id": "bdc3ae1c-dbe0-4112-82db-6cc7490769f7",
+              "name": "topic",
+              "value": "={{ $('ClassifyFeedback').item.json.output.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "ae4d6706-4931-43d2-8534-86601bfa23db",
+              "name": "urgency",
+              "value": "={{ $('ClassifyFeedback').item.json.output.urgency }}",
+              "type": "string"
+            },
+            {
+              "id": "f2a781f8-d5b0-4cec-961e-59595a63eb75",
+              "name": "key_issue",
+              "value": "={{ $('ClassifyFeedback').item.json.output.key_issue }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1008,
+        0
+      ],
+      "id": "32a5e992-50a2-403a-8b28-0b03c7759329",
+      "name": "SetClassificationResult"
+    },
+    {
+      "parameters": {
+              },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        0
+      ],
+      
+    }
+  ],
+  
+  "connections": {
+    "TriggerManual": {
+      "main": [
+        [
+          {
+            "node": "GetFeedback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetFeedback": {
+      "main": [
+        [
+          {
+            "node": "SetFeedbackItem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SetFeedbackItem": {
+      "main": [
+        [
+          {
+            "node": "ClassifyFeedback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gpt-oss-120b": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "GenerateReply",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GenerateReply": {
+      "main": [
+        [
+          {
+            "node": "SendGeneratedReply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ClassifyFeedback": {
+      "main": [
+        [
+          {
+            "node": "SetClassificationResult",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gpt-oss-20b": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "ClassifyFeedback",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OutputParser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "ClassifyFeedback",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SetClassificationResult": {
+      "main": [
+        [
+          {
+            "node": "GenerateReply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "XXXXXX",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "XXXXXX"
+  },
+  "nodeGroups": [],
+  "id": "XXXXXX",
+  "tags": [
+    {
+      "updatedAt": "2026-10-03T10:27:33.510Z",
+      "createdAt": "2026-10-03T10:27:33.510Z",
+      "id": "XXXXXX",
+      "name": "n8n103"
+    }
+  ]
+}
