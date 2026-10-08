@@ -1,0 +1,106 @@
+{
+  "name": "Section 2 - Error Handler (Error Workflow)",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "33314e33-fa73-49ba-8f90-ba832be957ea",
+      "name": "TriggerError"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "XXXXXXXX",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Assessment-ID",
+              "value": "XXXXXXXX"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "workflow_name",
+              "value": "={{ $json.workflow.name }}"
+            },
+            {
+              "name": "workflow_id",
+              "value": "={{ $json.workflow.id }}"
+            },
+            {
+              "name": "execution_url",
+              "value": "={{ $json.execution.url }}"
+            },
+            {
+              "name": "error_message",
+              "value": "={{ $json.execution.error.message }}"
+            },
+            {
+              "name": "failed_node",
+              "value": "={{ $json.execution.lastNodeExecuted }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        208,
+        0
+      ],
+      "id": "4f5414e7-54f0-47d2-b7af-c307e674eb25",
+      "name": "ReportError",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "XXXXXXXX",
+          "name": "n8n Academy API Key"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "TriggerError": {
+      "main": [
+        [
+          {
+            "node": "ReportError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "XXXXXXXX",
+  "meta": {
+    "instanceId": "XXXXXXXX"
+  },
+  "nodeGroups": [],
+  "id": "XXXXXXXX",
+  "tags": [
+    {
+      "updatedAt": "2026-10-03T10:27:33.510Z",
+      "createdAt": "2026-10-03T10:27:33.510Z",
+      "id": "XXXXXXXX",
+      "name": "n8n103"
+    }
+  ]
+}

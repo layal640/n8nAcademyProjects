@@ -1,0 +1,96 @@
+{
+  "name": "Section 2 - Failure Test",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "course/n8n103/failure-test",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7c914464-5f00-43c3-a4d2-7a0b12da2dc9",
+      "name": "TriggerWebhook",
+      "webhookId": "XXXXXXX",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "XXXXXXX",
+          "name": "n8n Academy API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "XXXXXXX",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Assessment-ID",
+              "value": "XXXXXXX"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "d6769cf9-c126-4720-afc0-4cdd1d0ff4d5",
+      "name": "CallFailingEndpoint",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "XXXXXXX",
+          "name": "n8n Academy API Key"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "TriggerWebhook": {
+      "main": [
+        [
+          {
+            "node": "CallFailingEndpoint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "TFGDjll8O7WifQlG",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "XXXXXXX",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "XXXXXXX"
+  },
+  "nodeGroups": [],
+  "id": "XXXXXXX",
+  "tags": [
+    {
+      "updatedAt": "2026-10-03T10:27:33.510Z",
+      "createdAt": "2026-10-03T10:27:33.510Z",
+      "id": "XXXXXXX",
+      "name": "n8n103"
+    }
+  ]
+}
